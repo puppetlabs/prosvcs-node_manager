@@ -84,8 +84,7 @@ Puppet::Type.type(:node_group).provide(:puppetclassify) do
     end
     # namevar may not be in this hash 
     send_data['name'] = @resource[:name] unless send_data['name']
-    # key changed for usability
-    send_data['override_environment'] = send_data['environment_trumps'] if send_data['environment_trumps']
+    
     # Passing an empty hash in the type results in undef
     send_data['classes'] = {} unless send_data['classes']
 
@@ -97,9 +96,15 @@ Puppet::Type.type(:node_group).provide(:puppetclassify) do
       end
     end
 
+    #renamed key for v1.0 API... 
+    send_data['environment_trumps'] = send_data.delete('override_environment')
+    send_data['environment_trumps'] = false if !send_data['environment_trumps']
+
     resp = $puppetclassify.groups.create_group(send_data)
     if resp
       send_data.each_key do |k|
+        #renamed key for v1.0 API...
+        k = 'override_environment' if k == 'environment_trumps'
         @property_hash[k]       = @resource[k]
         @property_hash[:ensure] = :present
       end

@@ -77,6 +77,7 @@ Puppet::Type.type(:node_group).provide(:puppetclassify) do
   mk_resource_methods
 
   def create
+    @noflush = true
     # Only passing parameters that are given
     send_data = Hash.new
     @resource.original_parameters.each do |k,v|
@@ -166,6 +167,7 @@ Puppet::Type.type(:node_group).provide(:puppetclassify) do
   end
 
   def flush
+    return if @noflush
     debug @property_flush['attrs']
     if @property_flush['attrs']
       @property_flush['attrs']['id'] = @property_hash[:id] unless @property_flush['attrs']['id']

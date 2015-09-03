@@ -28,13 +28,8 @@ Puppet::Type.newtype(:node_group) do
       fail("Variables must be supplied as a hash") unless value.is_a?(Hash)
     end
   end
-  newproperty(:rule) do
+  newproperty(:rule, :array_matching => :all) do
     desc 'Match conditions for this group'
-    flat = []
-    munge do |value|
-      flat << value
-    end
-    flat.join(',')
   end
   newproperty(:environment) do
     desc 'Environment for this group'

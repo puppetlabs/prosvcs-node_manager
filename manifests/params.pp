@@ -4,7 +4,7 @@ class node_manager::params {
   if "$::puppetversion" =~ /3.8/ {
     $gemprovider='pe_gem'
   }
-  elsif "$::pe_server_version" =~ /2015/ {
+  elsif "$::pe_server_version" =~ /201[56]/ {
     $gemprovider = 'puppet_gem'
   }
   else {

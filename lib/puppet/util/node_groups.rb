@@ -3,15 +3,9 @@
 # seamless loading by the masteror during compilation prior to enforcing state,
 # allow graceful failure when unable to load puppetclassify.
 
-begin
-  require 'yaml'
-  require 'puppetclassify'
-  parent = PuppetClassify
-rescue LoadError => e
-  parent = Object
-end
+require 'yaml'
 
-class Puppet::Util::Node_groups < parent
+class Puppet::Util::Node_groups
 
   def initialize
     auth_info = {
@@ -22,14 +16,27 @@ class Puppet::Util::Node_groups < parent
 
     begin
       nc_settings = YAML.load_file("#{Puppet.settings['confdir']}/classifier.yaml")
-      nc_settings = nc_settings.first if nc_settings.class == Array            
+      nc_settings = nc_settings.first if nc_settings.class == Array
     rescue
       fail "Could not find file #{Puppet.settings['confdir']}/classifier.yaml"
     else
       classifier_url = "https://#{nc_settings['server']}:#{nc_settings['port']}/classifier-api"
     end
 
-    super(classifier_url, auth_info)
+    @classifier   = PuppetClassify.new(classifier_url, auth_info)
+
+    # Add in for delete_environment method.
+    # See below.
+    @auth_info    = auth_info
+    @nc_api_url   = classifier_url
+  end
+
+  def environments
+    @environments ||= @classifier.environments
+  end
+
+  def groups
+    @groups ||= @classifer.groups
   end
 
   # Transform the node group array in to a hash
@@ -49,7 +56,8 @@ class Puppet::Util::Node_groups < parent
   # method to delete environments.  Using this
   # in the meantime.
   def delete_environment(name)
-    env_res = @puppet_https.delete("#{@nc_api_url}/v1/environments/#{name}")
+    puppet_https = PuppetHttps.new(@auth_info)
+    env_res = puppet_https.delete("#{@nc_api_url}/v1/environments/#{name}")
 
     unless env_res.code.to_i == 204
       STDERR.puts "An error occured saving the environment: HTTP #{env_res.code} #{env_res.message}"

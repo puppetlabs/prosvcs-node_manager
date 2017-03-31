@@ -1,6 +1,0 @@
-.*.swp
-Gemfile.lock
-spec/fixtures/
-pkg/*
-*.travis*
-*.old
